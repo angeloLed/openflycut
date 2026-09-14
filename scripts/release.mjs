@@ -116,11 +116,14 @@ async function main() {
   if (!existsSync(releaseDir)) {
     fail(`No release/ directory found. Run without --skip-build, or build manually first.`)
   }
+  // release/ isn't cleaned between builds, so also require the current
+  // version in the filename — otherwise a stale installer from a previous
+  // release (same platform, old version) would get uploaded again here.
   const artifacts = readdirSync(releaseDir)
-    .filter((f) => ARTIFACT_PATTERNS[platform].some((re) => re.test(f)))
+    .filter((f) => f.includes(pkg.version) && ARTIFACT_PATTERNS[platform].some((re) => re.test(f)))
     .map((f) => join(releaseDir, f))
   if (artifacts.length === 0) {
-    fail(`No ${platform} installer artifacts found in release/. Did the build succeed?`)
+    fail(`No ${platform} installer artifacts for version ${pkg.version} found in release/. Did the build succeed?`)
   }
   console.log(`Found ${artifacts.length} artifact(s):`)
   artifacts.forEach((a) => console.log(`  - ${a}`))
