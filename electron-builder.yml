@@ -36,3 +36,5 @@ linux:
     - deb
   icon: build/icon.png
   category: Utility
+deb:
+  maintainer: OpenFlyCut Contributors <openflycut@users.noreply.github.com>

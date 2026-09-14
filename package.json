@@ -2,8 +2,12 @@
   "name": "openflycut",
   "version": "0.1.0",
   "description": "Open-source, cross-platform clipboard history manager inspired by Flycut",
+  "homepage": "https://github.com/openflycut/openflycut",
   "main": "./out/main/index.js",
-  "author": "OpenFlyCut Contributors",
+  "author": {
+    "name": "OpenFlyCut Contributors",
+    "email": "openflycut@users.noreply.github.com"
+  },
   "license": "MIT",
   "private": true,
   "scripts": {
