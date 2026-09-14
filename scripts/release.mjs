@@ -107,8 +107,8 @@ async function main() {
   }
 
   if (!skipBuild) {
-    run(NPM_CMD, ['run', 'typecheck'])
-    run(NPM_CMD, ['run', `build:${platform}`])
+    run(NPM_CMD, ['run', 'typecheck'], { shell: process.platform === 'win32' })
+    run(NPM_CMD, ['run', `build:${platform}`], { shell: process.platform === 'win32' })
   } else {
     console.log('Skipping build (--skip-build): reusing whatever is already in release/')
   }
