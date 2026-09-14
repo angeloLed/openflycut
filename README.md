@@ -2,6 +2,10 @@
 
 An open-source, cross-platform clipboard history manager inspired by [Flycut](https://apps.apple.com/it/app/flycut-clipboard-manager/id442160987) for macOS. Built with Electron, React and TypeScript so it can run on Windows, macOS and Linux from a single codebase.
 
+> Not affiliated with or endorsed by the original Flycut project or its authors.
+
+This project was built through "vibe coding" with [Claude](https://claude.com/claude-code) — most of the code was written by the AI, with the maintainer directing features and reviewing changes rather than writing every line by hand.
+
 ## Features (v1)
 
 - Silently tracks your clipboard text history (configurable size, default 99 items)
@@ -42,6 +46,34 @@ npm run build:linux   # Linux AppImage/deb
 Unsigned local builds will show an "Unknown publisher" warning on Windows (SmartScreen) — this is expected until the project is code-signed.
 
 The renderer bundle is minified and `build/afterPack.js` strips Electron's bundled locale files down to English-only (the UI isn't translated), which together cut the packaged size by roughly 10-30% depending on platform/compression. If you add real i18n later, update `KEEP_LOCALES` in that script.
+
+## Docker (Linux build/test environment)
+
+The project has two build lanes: **native on Windows**, **Docker on Linux**. `Dockerfile` gives a reproducible Ubuntu environment with Node.js, Electron's GTK/X11 runtime libraries, and the extra tools `electron-builder`'s `.deb` target needs — the exact set of packages this project actually needed when the Linux build was verified by hand, not a generic guess. It doesn't attempt to run the Electron GUI interactively; it's for building and headlessly smoke-testing the Linux target reproducibly (locally or in CI), so nobody has to rediscover the apt package list.
+
+There's deliberately no equivalent Windows container: Docker Desktop can only run one engine at a time (Linux *or* Windows containers, not both), a matching Windows Server Core base image is heavyweight and version-fussy, and even then there's no headless-display story for smoke-testing the GUI the way `Xvfb` gives us on Linux — so it wouldn't actually buy reproducible testing, only a more fragile build. Build the Windows installer natively (`npm run build:win`) as usual; `docker-compose.yml`'s `linux` service just makes the Ubuntu side an equally short command, not a literal mirror of it:
+
+```bash
+docker compose build linux
+
+# typecheck / build / package — mounted into the repo, so results land in your own release/ and out/
+docker compose run --rm linux npm run typecheck
+docker compose run --rm linux npm run build:linux
+
+# functional smoke test of the packaged app, headless via Xvfb
+docker compose run --rm linux xvfb-run -a npm run smoke-test
+```
+
+`docker-compose.yml` keeps the container's own Linux-native `node_modules` (with `electron`/`koffi`'s Linux prebuilt binaries) in a named volume, separate from whatever `node_modules` exists on the host — this works the same whether you're on Windows, macOS or Linux; only the container needs Docker, not a matching Node/Electron setup on the host. The `Dockerfile` also installs `tini` as PID 1 (`ENTRYPOINT`) — without it, Electron hangs on shutdown inside a container (no init process to reap Chromium's child processes), which silently hangs anything waiting on it to exit, `smoke-test.mjs` included.
+
+## Smoke-testing a packaged build
+
+`scripts/smoke-test.mjs` drives a **packaged** build (`release/win-unpacked` or `release/linux-unpacked`, from `npm run build:win` / `build:linux`) via Playwright's Electron driver: confirms the app boots tray-only with no window, opens the real popup bundle, and round-trips an actual OS clipboard write through the watcher into the UI. Run it after any packaging-related change, on both platforms:
+
+```bash
+npm run build:win && npm run smoke-test        # Windows
+npm run build:linux && xvfb-run -a npm run smoke-test   # Linux / inside Docker
+```
 
 ## Icons
 

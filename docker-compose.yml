@@ -1,0 +1,16 @@
+# Unifies the Linux build/test "lane" behind the same short command shape as
+# the native Windows one (npm run build:win / smoke-test) — see README.md.
+# There's no Windows service here: Docker can't produce a Windows installer
+# without switching Docker Desktop's whole engine to Windows containers, and
+# even then there's no headless-display story for smoke-testing the GUI the
+# way Xvfb gives us on Linux. Windows stays native; this just makes the
+# Ubuntu side reproducible and equally easy to invoke.
+services:
+  linux:
+    build: .
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+
+volumes:
+  node_modules:
