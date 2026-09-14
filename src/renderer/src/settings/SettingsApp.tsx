@@ -10,11 +10,15 @@ export default function SettingsApp() {
   const [hotkeyError, setHotkeyError] = useState<string | undefined>()
   const [version, setVersion] = useState('')
   const [isLinux, setIsLinux] = useState(false)
+  const [isWindows, setIsWindows] = useState(false)
 
   useEffect(() => {
     window.api.settings.get().then(setSettings)
     window.api.app.getVersion().then(setVersion)
-    window.api.app.getPlatform().then((platform) => setIsLinux(platform === 'linux'))
+    window.api.app.getPlatform().then((platform) => {
+      setIsLinux(platform === 'linux')
+      setIsWindows(platform === 'win32')
+    })
   }, [])
 
   const update = async (patch: Partial<AppSettings>): Promise<void> => {
@@ -45,6 +49,12 @@ export default function SettingsApp() {
         label="Start minimized to tray"
         checked={settings.startMinimized}
         onChange={(startMinimized) => update({ startMinimized })}
+      />
+      <ToggleRow
+        label="Hold hotkey to browse, release to select"
+        checked={settings.holdToSelect}
+        disabled={!isWindows}
+        onChange={(holdToSelect) => update({ holdToSelect })}
       />
       <footer>OpenFlyCut {version}</footer>
     </div>

@@ -16,11 +16,13 @@ export interface AppSettings {
   hotkey: string
   launchAtLogin: boolean
   startMinimized: boolean
+  holdToSelect: boolean
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
   maxHistorySize: 99,
   hotkey: 'CommandOrControl+Shift+V',
   launchAtLogin: false,
-  startMinimized: true
+  startMinimized: true,
+  holdToSelect: false
 }

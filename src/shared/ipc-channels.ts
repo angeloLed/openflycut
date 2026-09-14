@@ -6,6 +6,7 @@ export const IPC = {
   HistoryClearAll: 'history:clearAll',
   HistoryChanged: 'history:changed',
   PopupHide: 'popup:hide',
+  PopupConfirmHoldSelection: 'popup:confirmHoldSelection',
   SettingsGet: 'settings:get',
   SettingsUpdate: 'settings:update',
   AppGetVersion: 'app:getVersion',

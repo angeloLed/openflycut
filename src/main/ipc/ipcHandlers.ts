@@ -4,8 +4,9 @@ import type { AppSettings } from '@shared/types'
 import * as historyStore from '../store/historyStore'
 import * as settingsStore from '../store/settingsStore'
 import { noteOwnWrite } from '../clipboard/clipboardWatcher'
-import { hidePopupWindow, togglePopupWindow } from '../windows/popupWindow'
+import { hidePopupWindow } from '../windows/popupWindow'
 import { registerShortcut } from '../shortcuts/globalShortcuts'
+import { handleHotkeyPress } from '../shortcuts/hotkeyHandler'
 import { applyLaunchAtLogin } from '../autoLaunch'
 
 export function registerIpcHandlers(): void {
@@ -34,7 +35,7 @@ export function registerIpcHandlers(): void {
     let hotkeyError: string | undefined
 
     if (patch.hotkey && patch.hotkey !== previousHotkey) {
-      const ok = registerShortcut(settings.hotkey, () => togglePopupWindow())
+      const ok = registerShortcut(settings.hotkey, handleHotkeyPress)
       if (!ok) {
         hotkeyError = `Hotkey "${settings.hotkey}" is already in use`
         settingsStore.updateSettings({ hotkey: previousHotkey })

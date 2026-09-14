@@ -2,6 +2,7 @@ import { app, BrowserWindow, screen } from 'electron'
 import { join } from 'path'
 import { isQuitting } from '../appState'
 import { capturePreviousFocus, restorePreviousFocus } from './previousFocus'
+import { stopWatchingForModifierRelease } from '../shortcuts/holdToSelect'
 import { IPC } from '@shared/ipc-channels'
 
 const WINDOW_WIDTH = 360
@@ -34,6 +35,7 @@ function createPopupWindow(): BrowserWindow {
 
   win.on('blur', () => {
     if (!app.isPackaged && win.webContents.isDevToolsOpened()) return
+    stopWatchingForModifierRelease()
     win.hide()
   })
 
@@ -64,11 +66,12 @@ export function getPopupWindow(): BrowserWindow {
   return popupWindow
 }
 
-export function togglePopupWindow(): void {
+/** Returns true if the popup was just opened, false if it was just closed. */
+export function togglePopupWindow(): boolean {
   const win = getPopupWindow()
   if (win.isVisible()) {
     hidePopupWindow()
-    return
+    return false
   }
   capturePreviousFocus()
   positionNearCursor(win)
@@ -78,10 +81,12 @@ export function togglePopupWindow(): void {
   // its React app doesn't remount on reopen — tell it to refetch explicitly,
   // otherwise it keeps showing whatever was current the first time it opened.
   win.webContents.send(IPC.HistoryChanged)
+  return true
 }
 
 /** Hides the popup and hands focus back to whatever the user had active before it opened. */
 export function hidePopupWindow(): void {
+  stopWatchingForModifierRelease()
   if (popupWindow && !popupWindow.isDestroyed() && popupWindow.isVisible()) {
     popupWindow.hide()
     restorePreviousFocus()

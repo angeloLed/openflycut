@@ -4,6 +4,7 @@ import { getPopupWindow, togglePopupWindow } from './windows/popupWindow'
 import { startClipboardWatcher } from './clipboard/clipboardWatcher'
 import { registerIpcHandlers } from './ipc/ipcHandlers'
 import { registerShortcut, unregisterAll } from './shortcuts/globalShortcuts'
+import { handleHotkeyPress } from './shortcuts/hotkeyHandler'
 import { getSettings } from './store/settingsStore'
 import { applyLaunchAtLogin } from './autoLaunch'
 import { IPC } from '@shared/ipc-channels'
@@ -35,7 +36,7 @@ if (!hasLock) {
       }
     })
 
-    registerShortcut(settings.hotkey, () => togglePopupWindow())
+    registerShortcut(settings.hotkey, handleHotkeyPress)
     applyLaunchAtLogin(settings.launchAtLogin)
 
     if (!settings.startMinimized) {

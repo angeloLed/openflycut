@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ClipItem } from '@shared/types'
 
 export function usePopupController() {
@@ -43,6 +43,20 @@ export function usePopupController() {
   const selectItem = async (id: string): Promise<void> => {
     await window.api.history.selectItem(id)
   }
+
+  // Holding the hotkey's modifiers and releasing them confirms whatever is
+  // currently highlighted (see main/shortcuts/holdToSelect.ts). The effect
+  // below only subscribes once, so it goes through a ref to always call the
+  // latest selectCurrent rather than a stale one from the first render.
+  const selectCurrentRef = useRef(selectCurrent)
+  useEffect(() => {
+    selectCurrentRef.current = selectCurrent
+  })
+  useEffect(() => {
+    return window.api.popup.onConfirmHoldSelection(() => {
+      selectCurrentRef.current()
+    })
+  }, [])
 
   const togglePin = async (id: string): Promise<void> => {
     const updated = await window.api.history.pinItem(id)

@@ -16,7 +16,12 @@ const api = {
     }
   },
   popup: {
-    hide: (): void => ipcRenderer.send(IPC.PopupHide)
+    hide: (): void => ipcRenderer.send(IPC.PopupHide),
+    onConfirmHoldSelection: (callback: () => void): (() => void) => {
+      const listener = (): void => callback()
+      ipcRenderer.on(IPC.PopupConfirmHoldSelection, listener)
+      return () => ipcRenderer.removeListener(IPC.PopupConfirmHoldSelection, listener)
+    }
   },
   settings: {
     get: (): Promise<AppSettings> => ipcRenderer.invoke(IPC.SettingsGet),
