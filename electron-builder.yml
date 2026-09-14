@@ -13,6 +13,8 @@ extraResources:
   - from: resources
     to: .
 publish: null
+afterPack: build/afterPack.js
+compression: maximum
 win:
   executableName: OpenFlyCut
   target:

@@ -41,6 +41,8 @@ npm run build:linux   # Linux AppImage/deb
 
 Unsigned local builds will show an "Unknown publisher" warning on Windows (SmartScreen) — this is expected until the project is code-signed.
 
+The renderer bundle is minified and `build/afterPack.js` strips Electron's bundled locale files down to English-only (the UI isn't translated), which together cut the packaged size by roughly 10-30% depending on platform/compression. If you add real i18n later, update `KEEP_LOCALES` in that script.
+
 ## Icons
 
 `scripts/generate-icons.mjs` generates `build/icon.ico` and `build/icon.png` (also copied to `resources/`, which is what the app actually loads at runtime) from a small procedurally-drawn glyph, using pure-JS libraries (`jimp`, `png-to-ico`) so no native/Xcode/Visual Studio toolchain is required:
