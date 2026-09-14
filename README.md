@@ -7,6 +7,7 @@ An open-source, cross-platform clipboard history manager inspired by [Flycut](ht
 - Silently tracks your clipboard text history (configurable size, default 99 items)
 - Global hotkey (default `Ctrl+Shift+V`) opens a quick search/select popup near your cursor
 - Selecting an item merges it back to the top of the history and copies it to the clipboard — just press `Ctrl+V`
+- On Windows, focus returns to whatever app you were in before opening the popup, so `Ctrl+V` works immediately with no need to click back into it
 - Pin/star favorite items so they're never evicted
 - Delete individual items or clear the whole (unpinned) history
 - Runs from the system tray with Preferences for history size, hotkey, launch at login and start-minimized

@@ -1,6 +1,7 @@
 import { app, BrowserWindow, screen } from 'electron'
 import { join } from 'path'
 import { isQuitting } from '../appState'
+import { capturePreviousFocus, restorePreviousFocus } from './previousFocus'
 
 const WINDOW_WIDTH = 360
 const WINDOW_HEIGHT = 420
@@ -65,16 +66,19 @@ export function getPopupWindow(): BrowserWindow {
 export function togglePopupWindow(): void {
   const win = getPopupWindow()
   if (win.isVisible()) {
-    win.hide()
+    hidePopupWindow()
     return
   }
+  capturePreviousFocus()
   positionNearCursor(win)
   win.show()
   win.focus()
 }
 
+/** Hides the popup and hands focus back to whatever the user had active before it opened. */
 export function hidePopupWindow(): void {
-  if (popupWindow && !popupWindow.isDestroyed()) {
+  if (popupWindow && !popupWindow.isDestroyed() && popupWindow.isVisible()) {
     popupWindow.hide()
+    restorePreviousFocus()
   }
 }
