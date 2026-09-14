@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import Store from 'electron-store'
-import { ClipItem } from '@shared/types'
+import { ClipItem, SourceApp } from '@shared/types'
 
 interface HistorySchema {
   items: ClipItem[]
@@ -20,16 +20,20 @@ function save(items: ClipItem[]): ClipItem[] {
   return items
 }
 
-export function addOrMergeToTop(text: string, maxHistorySize: number): ClipItem[] {
+export function addOrMergeToTop(
+  text: string,
+  maxHistorySize: number,
+  sourceApp?: SourceApp
+): ClipItem[] {
   const items = getAll()
   const existingIndex = items.findIndex((i) => i.text === text)
   let entry: ClipItem
   let rest: ClipItem[]
   if (existingIndex >= 0) {
-    entry = items[existingIndex]
+    entry = sourceApp ? { ...items[existingIndex], sourceApp } : items[existingIndex]
     rest = items.filter((_, i) => i !== existingIndex)
   } else {
-    entry = { id: randomUUID(), text, createdAt: Date.now(), pinned: false }
+    entry = { id: randomUUID(), text, createdAt: Date.now(), pinned: false, sourceApp }
     rest = items
   }
   const merged = [entry, ...rest]

@@ -1,8 +1,14 @@
+export interface SourceApp {
+  name: string
+  iconDataUrl?: string
+}
+
 export interface ClipItem {
   id: string
   text: string
   createdAt: number
   pinned: boolean
+  sourceApp?: SourceApp
 }
 
 export interface AppSettings {

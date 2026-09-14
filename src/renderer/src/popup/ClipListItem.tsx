@@ -17,6 +17,11 @@ export default function ClipListItem({
 }: Props) {
   return (
     <li className={`clip-item${active ? ' active' : ''}`} onClick={onSelect}>
+      {item.sourceApp?.iconDataUrl ? (
+        <img className="clip-icon" src={item.sourceApp.iconDataUrl} alt="" title={item.sourceApp.name} />
+      ) : (
+        <span className="clip-icon clip-icon-placeholder" title={item.sourceApp?.name} />
+      )}
       <span className="clip-text">{item.text.replace(/\s+/g, ' ').slice(0, 200)}</span>
       <span className="clip-actions">
         <button
