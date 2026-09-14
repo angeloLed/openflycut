@@ -14,6 +14,9 @@ const rootDir = join(__dirname, '..')
 const releaseDir = join(rootDir, 'release')
 
 const PLATFORM_MAP = { win32: 'win', darwin: 'mac', linux: 'linux' }
+// On Windows, npm is a .cmd shim — execFileSync needs the exact filename,
+// unlike spawning through a shell which resolves PATHEXT automatically.
+const NPM_CMD = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 const ARTIFACT_PATTERNS = {
   win: [/\.exe$/i, /\.exe\.blockmap$/i],
   mac: [/\.dmg$/i, /\.zip$/i, /\.dmg\.blockmap$/i, /\.zip\.blockmap$/i],
@@ -104,8 +107,8 @@ async function main() {
   }
 
   if (!skipBuild) {
-    run('npm', ['run', 'typecheck'])
-    run('npm', ['run', `build:${platform}`])
+    run(NPM_CMD, ['run', 'typecheck'])
+    run(NPM_CMD, ['run', `build:${platform}`])
   } else {
     console.log('Skipping build (--skip-build): reusing whatever is already in release/')
   }
