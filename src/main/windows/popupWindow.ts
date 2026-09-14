@@ -2,6 +2,7 @@ import { app, BrowserWindow, screen } from 'electron'
 import { join } from 'path'
 import { isQuitting } from '../appState'
 import { capturePreviousFocus, restorePreviousFocus } from './previousFocus'
+import { IPC } from '@shared/ipc-channels'
 
 const WINDOW_WIDTH = 360
 const WINDOW_HEIGHT = 420
@@ -73,6 +74,10 @@ export function togglePopupWindow(): void {
   positionNearCursor(win)
   win.show()
   win.focus()
+  // The window is a singleton that's only shown/hidden, never reloaded, so
+  // its React app doesn't remount on reopen — tell it to refetch explicitly,
+  // otherwise it keeps showing whatever was current the first time it opened.
+  win.webContents.send(IPC.HistoryChanged)
 }
 
 /** Hides the popup and hands focus back to whatever the user had active before it opened. */
