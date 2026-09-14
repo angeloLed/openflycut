@@ -5,6 +5,16 @@ export function usePopupController() {
   const [items, setItems] = useState<ClipItem[]>([])
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const itemRefs = useRef<Map<number, HTMLLIElement>>(new Map())
+
+  const registerItemRef = (index: number, el: HTMLLIElement | null): void => {
+    if (el) itemRefs.current.set(index, el)
+    else itemRefs.current.delete(index)
+  }
+
+  const focusItem = (index: number): void => {
+    itemRefs.current.get(index)?.focus()
+  }
 
   const load = async (): Promise<void> => {
     const all = await window.api.history.getAll()
@@ -27,11 +37,19 @@ export function usePopupController() {
     setSelectedIndex(0)
   }, [query])
 
+  // Every time the underlying list is (re)loaded — on mount, on reopen, or
+  // when a background clip arrives — jump focus back to the top item. This
+  // is deliberately keyed on `items` (not `query`), so typing to search
+  // never fights this for DOM focus.
+  useEffect(() => {
+    setSelectedIndex(0)
+    if (items.length > 0) focusItem(0)
+  }, [items])
+
   const moveSelection = (delta: number): void => {
-    setSelectedIndex((prev) => {
-      const next = prev + delta
-      return Math.min(Math.max(next, 0), Math.max(filtered.length - 1, 0))
-    })
+    const next = Math.min(Math.max(selectedIndex + delta, 0), Math.max(filtered.length - 1, 0))
+    setSelectedIndex(next)
+    focusItem(next)
   }
 
   const selectCurrent = async (): Promise<void> => {
@@ -77,6 +95,7 @@ export function usePopupController() {
     selectCurrent,
     selectItem,
     togglePin,
-    deleteItem
+    deleteItem,
+    registerItemRef
   }
 }

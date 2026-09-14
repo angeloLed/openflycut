@@ -56,6 +56,12 @@ export default function SettingsApp() {
         disabled={!isWindows}
         onChange={(holdToSelect) => update({ holdToSelect })}
       />
+      <ToggleRow
+        label="Automatically paste after selecting an item"
+        checked={settings.autoPasteOnSelect}
+        disabled={!isWindows}
+        onChange={(autoPasteOnSelect) => update({ autoPasteOnSelect })}
+      />
       <footer>OpenFlyCut {version}</footer>
     </div>
   )

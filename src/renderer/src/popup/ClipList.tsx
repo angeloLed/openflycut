@@ -7,6 +7,7 @@ interface Props {
   onSelect: (id: string) => void
   onTogglePin: (id: string) => void
   onDelete: (id: string) => void
+  registerItemRef: (index: number, el: HTMLLIElement | null) => void
 }
 
 export default function ClipList({
@@ -14,7 +15,8 @@ export default function ClipList({
   selectedIndex,
   onSelect,
   onTogglePin,
-  onDelete
+  onDelete,
+  registerItemRef
 }: Props) {
   if (items.length === 0) {
     return <div className="empty-state">No clipboard history yet</div>
@@ -30,6 +32,7 @@ export default function ClipList({
           onSelect={() => onSelect(item.id)}
           onTogglePin={() => onTogglePin(item.id)}
           onDelete={() => onDelete(item.id)}
+          itemRef={(el) => registerItemRef(index, el)}
         />
       ))}
     </ul>

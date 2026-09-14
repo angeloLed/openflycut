@@ -1,20 +1,14 @@
-import { useEffect, useRef } from 'react'
+import { forwardRef } from 'react'
 
 interface Props {
   value: string
   onChange: (value: string) => void
 }
 
-export default function SearchBox({ value, onChange }: Props) {
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
-
+const SearchBox = forwardRef<HTMLInputElement, Props>(function SearchBox({ value, onChange }, ref) {
   return (
     <input
-      ref={inputRef}
+      ref={ref}
       className="search-box"
       type="text"
       placeholder="Search clipboard history…"
@@ -22,4 +16,6 @@ export default function SearchBox({ value, onChange }: Props) {
       onChange={(e) => onChange(e.target.value)}
     />
   )
-}
+})
+
+export default SearchBox

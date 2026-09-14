@@ -8,6 +8,10 @@ import { hidePopupWindow } from '../windows/popupWindow'
 import { registerShortcut } from '../shortcuts/globalShortcuts'
 import { handleHotkeyPress } from '../shortcuts/hotkeyHandler'
 import { applyLaunchAtLogin } from '../autoLaunch'
+import { sendPasteKeystroke } from '../autoPaste'
+
+/** Gives the OS time to finish switching focus to the previous window before we simulate Ctrl+V there. */
+const AUTO_PASTE_DELAY_MS = 120
 
 export function registerIpcHandlers(): void {
   ipcMain.handle(IPC.HistoryGetAll, () => historyStore.getAll())
@@ -19,6 +23,10 @@ export function registerIpcHandlers(): void {
     clipboard.writeText(item.text)
     historyStore.addOrMergeToTop(item.text, settingsStore.getSettings().maxHistorySize)
     hidePopupWindow()
+
+    if (settingsStore.getSettings().autoPasteOnSelect) {
+      setTimeout(() => sendPasteKeystroke(), AUTO_PASTE_DELAY_MS)
+    }
   })
 
   ipcMain.handle(IPC.HistoryPinItem, (_event, id: string) => historyStore.togglePin(id))

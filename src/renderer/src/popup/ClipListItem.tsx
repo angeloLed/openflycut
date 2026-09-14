@@ -6,6 +6,7 @@ interface Props {
   onSelect: () => void
   onTogglePin: () => void
   onDelete: () => void
+  itemRef: (el: HTMLLIElement | null) => void
 }
 
 export default function ClipListItem({
@@ -13,10 +14,11 @@ export default function ClipListItem({
   active,
   onSelect,
   onTogglePin,
-  onDelete
+  onDelete,
+  itemRef
 }: Props) {
   return (
-    <li className={`clip-item${active ? ' active' : ''}`} onClick={onSelect}>
+    <li ref={itemRef} tabIndex={-1} className={`clip-item${active ? ' active' : ''}`} onClick={onSelect}>
       {item.sourceApp?.iconDataUrl ? (
         <img className="clip-icon" src={item.sourceApp.iconDataUrl} alt="" title={item.sourceApp.name} />
       ) : (

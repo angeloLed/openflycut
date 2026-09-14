@@ -17,6 +17,7 @@ export interface AppSettings {
   launchAtLogin: boolean
   startMinimized: boolean
   holdToSelect: boolean
+  autoPasteOnSelect: boolean
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -24,5 +25,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   hotkey: 'CommandOrControl+Shift+V',
   launchAtLogin: false,
   startMinimized: true,
-  holdToSelect: false
+  holdToSelect: false,
+  autoPasteOnSelect: false
 }
