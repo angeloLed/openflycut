@@ -48,6 +48,11 @@ function trim(items: ClipItem[], maxHistorySize: number): ClipItem[] {
   return items.filter((i) => keepIds.has(i.id))
 }
 
+export function setItemSourceApp(id: string, sourceApp: SourceApp): ClipItem[] {
+  const items = getAll().map((i) => (i.id === id ? { ...i, sourceApp } : i))
+  return save(items)
+}
+
 export function togglePin(id: string): ClipItem[] {
   const items = getAll().map((i) => (i.id === id ? { ...i, pinned: !i.pinned } : i))
   return save(items)
