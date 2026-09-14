@@ -33,6 +33,8 @@ mac:
   icon: build/icon.icns
   category: public.app-category.utilities
 linux:
+  desktopName: openflycut.desktop
+  syncDesktopName: true
   target:
     - AppImage
     - deb

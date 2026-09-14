@@ -1,6 +1,6 @@
 {
   "name": "openflycut",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Open-source, cross-platform clipboard history manager inspired by Flycut",
   "homepage": "https://github.com/angeloLed/openflycut",
   "main": "./out/main/index.js",
