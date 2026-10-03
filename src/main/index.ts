@@ -34,6 +34,8 @@ if (!hasLock) {
       if (win.isVisible()) {
         win.webContents.send(IPC.HistoryChanged)
       }
+    }).catch((err) => {
+      console.error('[main] failed to start clipboard watcher:', err)
     })
 
     registerShortcut(settings.hotkey, handleHotkeyPress)

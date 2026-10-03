@@ -16,11 +16,11 @@ const AUTO_PASTE_DELAY_MS = 120
 export function registerIpcHandlers(): void {
   ipcMain.handle(IPC.HistoryGetAll, () => historyStore.getAll())
 
-  ipcMain.handle(IPC.HistorySelectItem, (_event, id: string) => {
+  ipcMain.handle(IPC.HistorySelectItem, async (_event, id: string) => {
     const item = historyStore.getAll().find((i) => i.id === id)
     if (!item) return
     noteOwnWrite(item.text)
-    clipboard.writeText(item.text)
+    await clipboard.writeText(item.text)
     historyStore.addOrMergeToTop(item.text, settingsStore.getSettings().maxHistorySize)
     hidePopupWindow()
 

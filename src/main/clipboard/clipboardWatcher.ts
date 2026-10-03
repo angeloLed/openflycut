@@ -13,37 +13,43 @@ export function noteOwnWrite(text: string): void {
   lastSeenText = text
 }
 
-export function startClipboardWatcher(onChange: () => void): void {
-  lastSeenText = clipboard.readText()
+export async function startClipboardWatcher(onChange: () => void): Promise<void> {
+  lastSeenText = await clipboard.readText()
   timer = setInterval(() => {
-    const text = clipboard.readText()
-    if (!text || text === lastSeenText) return
-    lastSeenText = text
-
-    // Record the clip immediately — the item must never wait on the
-    // best-effort icon lookup below, which can be slow or fail for some apps.
-    const items = addOrMergeToTop(text, getSettings().maxHistorySize)
-    const newItemId = items[0]?.id
-    onChange()
-
-    let exePath: string | null = null
-    try {
-      exePath = getClipboardOwnerExePath()
-    } catch (err) {
-      console.error('[clipboardWatcher] getClipboardOwnerExePath threw:', err)
-    }
-    if (!exePath || !newItemId) return
-
-    resolveSourceApp(exePath)
-      .then((sourceApp) => {
-        if (!sourceApp) return
-        setItemSourceApp(newItemId, sourceApp)
-        onChange()
-      })
-      .catch((err) => {
-        console.error('[clipboardWatcher] failed to resolve source app icon:', err)
-      })
+    pollOnce(onChange).catch((err) => {
+      console.error('[clipboardWatcher] poll tick failed:', err)
+    })
   }, CLIPBOARD_POLL_INTERVAL_MS)
+}
+
+async function pollOnce(onChange: () => void): Promise<void> {
+  const text = await clipboard.readText()
+  if (!text || text === lastSeenText) return
+  lastSeenText = text
+
+  // Record the clip immediately — the item must never wait on the
+  // best-effort icon lookup below, which can be slow or fail for some apps.
+  const items = addOrMergeToTop(text, getSettings().maxHistorySize)
+  const newItemId = items[0]?.id
+  onChange()
+
+  let exePath: string | null = null
+  try {
+    exePath = getClipboardOwnerExePath()
+  } catch (err) {
+    console.error('[clipboardWatcher] getClipboardOwnerExePath threw:', err)
+  }
+  if (!exePath || !newItemId) return
+
+  resolveSourceApp(exePath)
+    .then((sourceApp) => {
+      if (!sourceApp) return
+      setItemSourceApp(newItemId, sourceApp)
+      onChange()
+    })
+    .catch((err) => {
+      console.error('[clipboardWatcher] failed to resolve source app icon:', err)
+    })
 }
 
 export function stopClipboardWatcher(): void {
