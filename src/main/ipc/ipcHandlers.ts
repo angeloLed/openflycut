@@ -1,4 +1,6 @@
-import { ipcMain, clipboard, app } from 'electron'
+import { ipcMain, clipboard, app, shell } from 'electron'
+import { existsSync } from 'node:fs'
+import { dirname } from 'node:path'
 import { IPC } from '@shared/ipc-channels'
 import type { AppSettings } from '@shared/types'
 import * as historyStore from '../store/historyStore'
@@ -38,6 +40,11 @@ export function registerIpcHandlers(): void {
   )
   ipcMain.handle(IPC.HistoryClearAll, (_event, bucketId: string) => historyStore.clearAll(bucketId))
   ipcMain.handle(IPC.HistoryGetSize, () => historyStore.getStorageBytes())
+  ipcMain.handle(IPC.HistoryRevealFile, () => {
+    const file = historyStore.getHistoryFilePath()
+    if (existsSync(file)) shell.showItemInFolder(file)
+    else shell.openPath(dirname(file))
+  })
   ipcMain.handle(IPC.HistoryUpdateItemText, (_event, bucketId: string, id: string, text: string) => {
     const result = historyStore.updateItemText(bucketId, id, text)
     notifyPopupChanged()

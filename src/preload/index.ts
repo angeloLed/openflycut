@@ -22,6 +22,7 @@ const api = {
       ipcRenderer.invoke(IPC.HistoryDeleteItem, bucketId, id),
     clearAll: (bucketId: string): Promise<ClipItem[]> => ipcRenderer.invoke(IPC.HistoryClearAll, bucketId),
     getSize: (): Promise<number> => ipcRenderer.invoke(IPC.HistoryGetSize),
+    revealFile: (): Promise<void> => ipcRenderer.invoke(IPC.HistoryRevealFile),
     updateItemText: (bucketId: string, id: string, text: string): Promise<Result<ClipItem[]>> =>
       ipcRenderer.invoke(IPC.HistoryUpdateItemText, bucketId, id, text)
   },

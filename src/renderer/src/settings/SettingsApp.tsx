@@ -104,6 +104,9 @@ export default function SettingsApp() {
           <p className="storage-info">
             History database (history.json):{' '}
             <strong>{historyBytes === null ? '…' : formatBytes(historyBytes)}</strong>
+            <button className="link-button" onClick={() => window.api.history.revealFile()}>
+              Open file location
+            </button>
           </p>
           <footer>OpenFlyCut {version}</footer>
         </div>

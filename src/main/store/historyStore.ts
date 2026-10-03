@@ -165,6 +165,11 @@ export function getCurrentBucketId(): string {
   return ensureLoaded().currentBucketId
 }
 
+export function getHistoryFilePath(): string {
+  ensureLoaded()
+  return filePath
+}
+
 /** Size of the history file on disk, in bytes (0 if it hasn't been written yet). */
 export function getStorageBytes(): number {
   ensureLoaded()

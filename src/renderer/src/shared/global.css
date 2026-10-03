@@ -346,3 +346,18 @@ footer {
   color: var(--fg);
   font-weight: 500;
 }
+
+.link-button {
+  margin-left: 8px;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  padding: 0;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
