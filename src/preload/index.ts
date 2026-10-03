@@ -1,19 +1,37 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC } from '@shared/ipc-channels'
-import type { AppSettings, ClipItem } from '@shared/types'
+import type { AppSettings, Bucket, ClipItem, PopupView } from '@shared/types'
+
+type Result<T = void> = { ok: true; value: T } | { ok: false; error: string }
 
 const api = {
-  history: {
-    getAll: (): Promise<ClipItem[]> => ipcRenderer.invoke(IPC.HistoryGetAll),
-    selectItem: (id: string): Promise<void> => ipcRenderer.invoke(IPC.HistorySelectItem, id),
-    pinItem: (id: string): Promise<ClipItem[]> => ipcRenderer.invoke(IPC.HistoryPinItem, id),
-    deleteItem: (id: string): Promise<ClipItem[]> => ipcRenderer.invoke(IPC.HistoryDeleteItem, id),
-    clearAll: (): Promise<ClipItem[]> => ipcRenderer.invoke(IPC.HistoryClearAll),
+  view: {
+    get: (): Promise<PopupView> => ipcRenderer.invoke(IPC.ViewGet),
     onChanged: (callback: () => void): (() => void) => {
       const listener = (): void => callback()
       ipcRenderer.on(IPC.HistoryChanged, listener)
       return () => ipcRenderer.removeListener(IPC.HistoryChanged, listener)
     }
+  },
+  history: {
+    selectItem: (bucketId: string, id: string): Promise<void> =>
+      ipcRenderer.invoke(IPC.HistorySelectItem, bucketId, id),
+    pinItem: (bucketId: string, id: string): Promise<ClipItem[]> =>
+      ipcRenderer.invoke(IPC.HistoryPinItem, bucketId, id),
+    deleteItem: (bucketId: string, id: string): Promise<ClipItem[]> =>
+      ipcRenderer.invoke(IPC.HistoryDeleteItem, bucketId, id),
+    clearAll: (bucketId: string): Promise<ClipItem[]> => ipcRenderer.invoke(IPC.HistoryClearAll, bucketId),
+    getSize: (): Promise<number> => ipcRenderer.invoke(IPC.HistoryGetSize),
+    revealFile: (): Promise<void> => ipcRenderer.invoke(IPC.HistoryRevealFile),
+    updateItemText: (bucketId: string, id: string, text: string): Promise<Result<ClipItem[]>> =>
+      ipcRenderer.invoke(IPC.HistoryUpdateItemText, bucketId, id, text)
+  },
+  buckets: {
+    setCurrent: (id: string): Promise<Result<Bucket>> => ipcRenderer.invoke(IPC.BucketsSetCurrent, id),
+    getItems: (id: string): Promise<ClipItem[]> => ipcRenderer.invoke(IPC.BucketsGetItems, id),
+    create: (name: string): Promise<Result<Bucket>> => ipcRenderer.invoke(IPC.BucketsCreate, name),
+    rename: (id: string, name: string): Promise<Result<Bucket>> => ipcRenderer.invoke(IPC.BucketsRename, id, name),
+    delete: (id: string): Promise<Result> => ipcRenderer.invoke(IPC.BucketsDelete, id)
   },
   popup: {
     hide: (): void => ipcRenderer.send(IPC.PopupHide),
@@ -27,7 +45,7 @@ const api = {
     get: (): Promise<AppSettings> => ipcRenderer.invoke(IPC.SettingsGet),
     update: (
       patch: Partial<AppSettings>
-    ): Promise<{ settings: AppSettings; hotkeyError?: string }> =>
+    ): Promise<{ settings: AppSettings; shortcutErrors: Partial<Record<keyof Pick<AppSettings, 'hotkey' | 'bucketPrevHotkey' | 'bucketNextHotkey'>, string>> }> =>
       ipcRenderer.invoke(IPC.SettingsUpdate, patch)
   },
   app: {

@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ClipItem } from '@shared/types'
+import type { Bucket, ClipItem } from '@shared/types'
 
 export function usePopupController() {
   const [items, setItems] = useState<ClipItem[]>([])
+  const [buckets, setBuckets] = useState<Bucket[]>([])
+  const [bucketId, setBucketId] = useState('')
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const itemRefs = useRef<Map<number, HTMLLIElement>>(new Map())
+  const bucketIdRef = useRef('')
 
   const registerItemRef = (index: number, el: HTMLLIElement | null): void => {
     if (el) itemRefs.current.set(index, el)
@@ -16,15 +19,19 @@ export function usePopupController() {
     itemRefs.current.get(index)?.focus()
   }
 
+  // One round trip fetches bucket list, current bucket and its items together.
   const load = async (): Promise<void> => {
-    const all = await window.api.history.getAll()
-    setItems(all)
+    const view = await window.api.view.get()
+    if (view.currentBucketId !== bucketIdRef.current) setQuery('')
+    bucketIdRef.current = view.currentBucketId
+    setBuckets(view.buckets)
+    setBucketId(view.currentBucketId)
+    setItems(view.items)
   }
 
   useEffect(() => {
     load()
-    const unsubscribe = window.api.history.onChanged(load)
-    return unsubscribe
+    return window.api.view.onChanged(load)
   }, [])
 
   const filtered = useMemo(() => {
@@ -37,10 +44,9 @@ export function usePopupController() {
     setSelectedIndex(0)
   }, [query])
 
-  // Every time the underlying list is (re)loaded — on mount, on reopen, or
-  // when a background clip arrives — jump focus back to the top item. This
-  // is deliberately keyed on `items` (not `query`), so typing to search
-  // never fights this for DOM focus.
+  // Every time the list is (re)loaded — on mount, on reopen, on a bucket switch
+  // or when a background clip arrives — jump focus back to the top item. Keyed
+  // on `items` (not `query`), so typing to search never fights this for focus.
   useEffect(() => {
     setSelectedIndex(0)
     if (items.length > 0) focusItem(0)
@@ -55,11 +61,11 @@ export function usePopupController() {
   const selectCurrent = async (): Promise<void> => {
     const item = filtered[selectedIndex]
     if (!item) return
-    await window.api.history.selectItem(item.id)
+    await window.api.history.selectItem(bucketId, item.id)
   }
 
   const selectItem = async (id: string): Promise<void> => {
-    await window.api.history.selectItem(id)
+    await window.api.history.selectItem(bucketId, id)
   }
 
   // Holding the hotkey's modifiers and releasing them confirms whatever is
@@ -77,17 +83,20 @@ export function usePopupController() {
   }, [])
 
   const togglePin = async (id: string): Promise<void> => {
-    const updated = await window.api.history.pinItem(id)
+    const updated = await window.api.history.pinItem(bucketId, id)
     setItems(updated)
   }
 
   const deleteItem = async (id: string): Promise<void> => {
-    const updated = await window.api.history.deleteItem(id)
+    const updated = await window.api.history.deleteItem(bucketId, id)
     setItems(updated)
   }
 
+  const currentBucket = buckets.find((b) => b.id === bucketId)
+
   return {
     items: filtered,
+    bucketName: currentBucket?.name ?? '',
     query,
     setQuery,
     selectedIndex,

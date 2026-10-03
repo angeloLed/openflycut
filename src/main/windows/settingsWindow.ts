@@ -10,9 +10,11 @@ export function openSettingsWindow(): void {
   }
 
   settingsWindow = new BrowserWindow({
-    width: 420,
-    height: 480,
-    resizable: false,
+    width: 560,
+    height: 620,
+    minWidth: 480,
+    minHeight: 460,
+    resizable: true,
     title: 'OpenFlyCut Preferences',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

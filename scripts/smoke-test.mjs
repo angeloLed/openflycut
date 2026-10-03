@@ -6,7 +6,7 @@
 // On Linux without a display, wrap it: xvfb-run -a node scripts/smoke-test.mjs
 import { _electron as electron } from 'playwright-core'
 import { join, dirname } from 'node:path'
-import { mkdtempSync, existsSync } from 'node:fs'
+import { mkdtempSync, existsSync, writeFileSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 
@@ -40,7 +40,16 @@ async function main() {
     )
   }
 
+  // Seed a LEGACY (pre-buckets) history file so the migration path is exercised too.
   const userDataDir = mkdtempSync(join(tmpdir(), 'openflycut-smoketest-'))
+  mkdirSync(userDataDir, { recursive: true })
+  writeFileSync(
+    join(userDataDir, 'history.json'),
+    JSON.stringify({
+      items: [{ id: 'legacy-1', text: 'legacy clip from v1', createdAt: Date.now() - 1000, pinned: false }]
+    })
+  )
+
   const launchArgs = [`--user-data-dir=${userDataDir}`]
   if (process.platform === 'linux') launchArgs.push('--no-sandbox', '--disable-gpu')
 
@@ -77,20 +86,80 @@ async function main() {
       if (msg.type() === 'error') consoleErrors.push(msg.text())
     })
 
-    const emptyText = await page.evaluate(() => document.body.innerText)
-    assert(emptyText.includes('No clipboard history yet'), 'popup renders the empty state')
+    const hasView = await page.evaluate(() => typeof window.api?.view?.get === 'function')
+    assert(hasView, 'contextBridge window.api.view is present')
 
-    const hasApi = await page.evaluate(() => typeof window.api?.history?.getAll === 'function')
-    assert(hasApi, 'contextBridge window.api is present')
+    // Migration: the legacy file becomes a single "default" bucket, with a backup kept.
+    const view0 = await page.evaluate(() => window.api.view.get())
+    assert(view0.buckets.length === 1 && view0.buckets[0].name === 'default', 'legacy history migrates into a bucket named "default"')
+    assert(view0.items.some((i) => i.text === 'legacy clip from v1'), 'legacy entries survive the migration')
+    assert(existsSync(join(userDataDir, 'history.json.v1.bak')), 'original v1 history is backed up before migration')
 
+    // innerText applies CSS text-transform, so compare case-insensitively.
+    const bodyText = await page.evaluate(() => document.body.innerText)
+    assert(bodyText.toLowerCase().includes('default'), 'popup shows the current bucket name')
+
+    // Capture goes into the current bucket.
     const testText = 'Smoke test clip ' + Date.now()
     await app.evaluate((electronMod, t) => electronMod.clipboard.writeText(t), testText)
     await sleep(1200)
-    const history = await page.evaluate(() => window.api.history.getAll())
+    const view1 = await page.evaluate(() => window.api.view.get())
     assert(
-      history.length === 1 && history[0].text === testText,
-      `real clipboard capture round-trips through the watcher (got ${JSON.stringify(history)})`
+      view1.items.length === view0.items.length + 1 && view1.items[0].text === testText,
+      'copied text round-trips through the watcher into the current bucket'
     )
+
+    // Buckets: create, switch, capture into the new one, and keep the old one intact.
+    const created = await page.evaluate(() => window.api.buckets.create('Work'))
+    assert(created.ok, 'creating a bucket succeeds')
+    const duplicate = await page.evaluate(() => window.api.buckets.create('work'))
+    assert(!duplicate.ok, 'duplicate bucket names (case-insensitive) are rejected')
+    const empty = await page.evaluate(() => window.api.buckets.create('   '))
+    assert(!empty.ok, 'empty bucket names are rejected')
+
+    await page.evaluate((id) => window.api.buckets.setCurrent(id), created.value.id)
+    const workText = 'Work clip ' + Date.now()
+    await app.evaluate((electronMod, t) => electronMod.clipboard.writeText(t), workText)
+    await sleep(1200)
+    const view2 = await page.evaluate(() => window.api.view.get())
+    assert(view2.currentBucketId === created.value.id, 'switching the current bucket is reflected in the view')
+    assert(view2.items.some((i) => i.text === workText), 'a copy made while "Work" is current lands in "Work"')
+    assert(!view2.items.some((i) => i.text === testText), 'entries from "default" are not shown in "Work"')
+
+    // Rename and delete.
+    const renamed = await page.evaluate((id) => window.api.buckets.rename(id, 'Office'), created.value.id)
+    assert(renamed.ok && renamed.value.name === 'Office', 'renaming a bucket succeeds')
+    const deleted = await page.evaluate((id) => window.api.buckets.delete(id), created.value.id)
+    assert(deleted.ok, 'deleting a bucket succeeds')
+    const view3 = await page.evaluate(() => window.api.view.get())
+    assert(view3.buckets.length === 1, 'only the remaining bucket is left after delete')
+    assert(view3.currentBucketId === view3.buckets[0].id, 'deleting the current bucket falls back to another one')
+
+    // Editing an entry's text.
+    const edited = await page.evaluate(
+      (args) => window.api.history.updateItemText(args.bucketId, args.id, 'edited text'),
+      { bucketId: view3.currentBucketId, id: view3.items[0].id }
+    )
+    assert(edited.ok && edited.value[0].text === 'edited text', 'editing an entry text persists')
+    const emptyEdit = await page.evaluate(
+      (args) => window.api.history.updateItemText(args.bucketId, args.id, '  '),
+      { bucketId: view3.currentBucketId, id: view3.items[0].id }
+    )
+    assert(!emptyEdit.ok, 'entries cannot be edited to empty text')
+
+    // Shortcut validation: a clash between two of the three shortcut fields is refused.
+    const clash = await page.evaluate(() =>
+      window.api.settings.update({ bucketNextHotkey: 'CommandOrControl+Shift+V' })
+    )
+    assert(!!clash.shortcutErrors.bucketNextHotkey, 'a bucket shortcut that clashes with the main hotkey is refused')
+    const okUpdate = await page.evaluate(() => window.api.settings.update({ bucketNextHotkey: 'CommandOrControl+Alt+Right' }))
+    assert(Object.keys(okUpdate.shortcutErrors).length === 0, 'a valid bucket shortcut is accepted')
+
+    const historyBytes = await page.evaluate(() => window.api.history.getSize())
+    assert(historyBytes > 0, `history file size is reported for the settings tab (${historyBytes} bytes)`)
+
+    const settings = await page.evaluate(() => window.api.settings.get())
+    assert(settings.maxHistorySize === 99, `default maxHistorySize is 99 (got ${settings.maxHistorySize})`)
 
     const platform = await page.evaluate(() => window.api.app.getPlatform())
     assert(platform === process.platform, `app reports its own platform correctly (${platform})`)

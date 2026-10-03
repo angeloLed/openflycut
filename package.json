@@ -24,7 +24,8 @@
     "release": "node scripts/release.mjs",
     "release:win": "node scripts/release.mjs win",
     "release:mac": "node scripts/release.mjs mac",
-    "release:linux": "node scripts/release.mjs linux"
+    "release:linux": "node scripts/release.mjs linux",
+    "perf-test": "node scripts/perf-test.mjs"
   },
   "dependencies": {
     "electron-store": "^8.2.0",

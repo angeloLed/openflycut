@@ -56,6 +56,7 @@ It's one app, but it adapts to a few different ways of working through opt-in se
 - On Windows, focus returns to whatever app you were in before opening the popup, so `Ctrl+V` works immediately with no need to click back into it
 - Optional "auto-paste on select" (Windows, off by default): simulates `Ctrl+V` in that app for you, right after selecting an item
 - Shows the icon of the app each item was copied from (Windows)
+- Multiple named **buckets** (lists) — a `default` bucket out of the box. New copies go into the bucket currently shown; the popup header always shows its name. Two configurable shortcuts (default `Ctrl+Alt+←` / `Ctrl+Alt+→`) browse between buckets, even while the popup is open. Manage them, rename them, and edit or delete individual entries from the **Buckets** tab in Preferences
 - Pin/star favorite items so they're never evicted
 - Delete individual items or clear the whole (unpinned) history
 - Runs from the system tray with Preferences for history size, hotkey, launch at login and start-minimized
@@ -117,6 +118,18 @@ docker compose run --rm linux xvfb-run -a npm run smoke-test
 npm run build:win && npm run smoke-test        # Windows
 npm run build:linux && xvfb-run -a npm run smoke-test   # Linux / inside Docker
 ```
+
+### Latency
+
+`scripts/perf-test.mjs` seeds a full history (99 entries with source-app icons) in an isolated profile and measures the operations that decide whether the popup feels instant. Typical results on a packaged build:
+
+| Operation | Windows | Ubuntu (Docker/Xvfb) |
+|---|---|---|
+| Fetch list | ~1 ms | ~1 ms |
+| Select an item | ~13 ms | ~2 ms |
+| Copy → visible in popup | ~340 ms | ~290 ms |
+
+The history lives in memory and is written to disk in the background, instead of re-reading and re-parsing the whole JSON file on every access; that's what makes the list and selection effectively instant regardless of how many buckets and entries there are. Copy→visible is dominated by the 500 ms clipboard poll interval.
 
 ## Icons
 

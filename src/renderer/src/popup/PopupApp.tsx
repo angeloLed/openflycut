@@ -6,6 +6,7 @@ import { usePopupController } from './usePopupController'
 export default function PopupApp() {
   const {
     items,
+    bucketName,
     query,
     setQuery,
     selectedIndex,
@@ -53,6 +54,9 @@ export default function PopupApp() {
 
   return (
     <div className="popup-app">
+      <div className="bucket-bar" title="Browse buckets with the bucket shortcuts">
+        <span className="bucket-name">{bucketName}</span>
+      </div>
       <SearchBox ref={searchInputRef} value={query} onChange={setQuery} />
       <ClipList
         items={items}

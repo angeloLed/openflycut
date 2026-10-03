@@ -1,14 +1,14 @@
 import { app, BrowserWindow } from 'electron'
 import { createTray } from './tray'
 import { getPopupWindow, togglePopupWindow } from './windows/popupWindow'
-import { startClipboardWatcher } from './clipboard/clipboardWatcher'
+import { startClipboardWatcher, stopClipboardWatcher } from './clipboard/clipboardWatcher'
 import { registerIpcHandlers } from './ipc/ipcHandlers'
-import { registerShortcut, unregisterAll } from './shortcuts/globalShortcuts'
-import { handleHotkeyPress } from './shortcuts/hotkeyHandler'
+import { unregisterAll } from './shortcuts/globalShortcuts'
+import { bindAllShortcuts } from './shortcuts/bindings'
 import { getSettings } from './store/settingsStore'
+import { flushHistorySync } from './store/historyStore'
 import { applyLaunchAtLogin } from './autoLaunch'
 import { IPC } from '@shared/ipc-channels'
-import { stopClipboardWatcher } from './clipboard/clipboardWatcher'
 import { setQuitting } from './appState'
 
 const hasLock = app.requestSingleInstanceLock()
@@ -38,7 +38,7 @@ if (!hasLock) {
       console.error('[main] failed to start clipboard watcher:', err)
     })
 
-    registerShortcut(settings.hotkey, handleHotkeyPress)
+    bindAllShortcuts(settings)
     applyLaunchAtLogin(settings.launchAtLogin)
 
     if (!settings.startMinimized) {
@@ -57,6 +57,7 @@ if (!hasLock) {
   app.on('will-quit', () => {
     unregisterAll()
     stopClipboardWatcher()
+    flushHistorySync()
   })
 
   app.on('activate', () => {
