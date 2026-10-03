@@ -1,4 +1,10 @@
+<div align="center">
+
+<img src="build/icon.png" alt="OpenFlyCut icon" width="128" height="128" />
+
 # OpenFlyCut
+
+</div>
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/angeloLed/openflycut)](https://github.com/angeloLed/openflycut/releases/latest)
@@ -13,6 +19,8 @@ This project was built through "vibe coding" with [Claude](https://claude.com/cl
 **[⬇ Download the latest release](https://github.com/angeloLed/openflycut/releases/latest)** — Windows installer (`.exe`), Linux `AppImage`/`.deb`.
 
 ![OpenFlyCut popup showing clipboard history with search, pin and source-app icons](docs/screenshot.png)
+
+![OpenFlyCut Preferences window: history size, hotkey, launch at login, start minimized, hold-to-browse and auto-paste toggles](docs/screenshot-settings.png)
 
 ## Contents
 
