@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { KeyboardEvent } from 'react'
 
 interface Props {
+  label: string
   value: string
   error?: string
   onChange: (accelerator: string) => void
@@ -9,23 +10,32 @@ interface Props {
 
 const MODIFIER_KEYS = new Set(['Control', 'Meta', 'Alt', 'Shift'])
 
+// Electron accelerator names differ from DOM key names for these.
+const KEY_NAMES: Record<string, string> = {
+  ArrowLeft: 'Left',
+  ArrowRight: 'Right',
+  ArrowUp: 'Up',
+  ArrowDown: 'Down',
+  ' ': 'Space'
+}
+
 function toAccelerator(e: KeyboardEvent): string | null {
   if (MODIFIER_KEYS.has(e.key)) return null
   const parts: string[] = []
   if (e.ctrlKey || e.metaKey) parts.push('CommandOrControl')
   if (e.altKey) parts.push('Alt')
   if (e.shiftKey) parts.push('Shift')
-  const key = e.key.length === 1 ? e.key.toUpperCase() : e.key
+  const key = KEY_NAMES[e.key] ?? (e.key.length === 1 ? e.key.toUpperCase() : e.key)
   parts.push(key)
   return parts.join('+')
 }
 
-export default function HotkeyRecorder({ value, error, onChange }: Props) {
+export default function HotkeyRecorder({ label, value, error, onChange }: Props) {
   const [recording, setRecording] = useState(false)
 
   return (
     <label className="field-row">
-      <span>Global hotkey</span>
+      <span>{label}</span>
       <input
         className="hotkey-input"
         readOnly

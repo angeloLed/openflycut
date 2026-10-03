@@ -6,11 +6,21 @@ const store = new Store<AppSettings>({
   defaults: DEFAULT_SETTINGS
 })
 
+// Read once and kept in memory: electron-store re-reads the file on every get(),
+// and settings are consulted on every clipboard capture.
+let cache: AppSettings | null = null
+
+function load(): AppSettings {
+  if (!cache) cache = { ...DEFAULT_SETTINGS, ...store.store }
+  return cache
+}
+
 export function getSettings(): AppSettings {
-  return { ...DEFAULT_SETTINGS, ...store.store }
+  return { ...load() }
 }
 
 export function updateSettings(patch: Partial<AppSettings>): AppSettings {
-  store.set({ ...store.store, ...patch })
+  cache = { ...load(), ...patch }
+  store.set(cache)
   return getSettings()
 }

@@ -1,6 +1,6 @@
 import { clipboard } from 'electron'
 import { CLIPBOARD_POLL_INTERVAL_MS } from '../constants'
-import { addOrMergeToTop, setItemSourceApp } from '../store/historyStore'
+import { addOrMergeToTop, getCurrentBucketId, setItemSourceApp } from '../store/historyStore'
 import { getSettings } from '../store/settingsStore'
 import { getClipboardOwnerExePath } from './sourceApp'
 import { resolveSourceApp } from './sourceAppIcon'
@@ -27,9 +27,12 @@ async function pollOnce(onChange: () => void): Promise<void> {
   if (!text || text === lastSeenText) return
   lastSeenText = text
 
+  // New copies always land in the bucket currently on screen. Captured here so
+  // a bucket switch during the async icon lookup can't misfile the icon.
+  const bucketId = getCurrentBucketId()
   // Record the clip immediately — the item must never wait on the
   // best-effort icon lookup below, which can be slow or fail for some apps.
-  const items = addOrMergeToTop(text, getSettings().maxHistorySize)
+  const items = addOrMergeToTop(bucketId, text, getSettings().maxHistorySize)
   const newItemId = items[0]?.id
   onChange()
 
@@ -44,7 +47,7 @@ async function pollOnce(onChange: () => void): Promise<void> {
   resolveSourceApp(exePath)
     .then((sourceApp) => {
       if (!sourceApp) return
-      setItemSourceApp(newItemId, sourceApp)
+      setItemSourceApp(bucketId, newItemId, sourceApp)
       onChange()
     })
     .catch((err) => {

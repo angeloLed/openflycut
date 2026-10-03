@@ -84,6 +84,13 @@ export function togglePopupWindow(): boolean {
   return true
 }
 
+/** Tells the popup its data changed; does nothing (and creates nothing) if it's not visible — it refetches on show anyway. */
+export function notifyPopupChanged(): void {
+  if (popupWindow && !popupWindow.isDestroyed() && popupWindow.isVisible()) {
+    popupWindow.webContents.send(IPC.HistoryChanged)
+  }
+}
+
 /** Hides the popup and hands focus back to whatever the user had active before it opened. */
 export function hidePopupWindow(): void {
   stopWatchingForModifierRelease()

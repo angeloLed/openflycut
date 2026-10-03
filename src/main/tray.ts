@@ -2,7 +2,7 @@ import { app, Menu, Tray } from 'electron'
 import { getIconPath } from './constants'
 import { togglePopupWindow } from './windows/popupWindow'
 import { openSettingsWindow } from './windows/settingsWindow'
-import { clearAll } from './store/historyStore'
+import { clearAll, getCurrentBucketId } from './store/historyStore'
 
 let tray: Tray | null = null
 
@@ -15,9 +15,9 @@ export function createTray(onHistoryChanged: () => void): Tray {
     { label: 'Preferences…', click: () => openSettingsWindow() },
     { type: 'separator' },
     {
-      label: 'Clear History',
+      label: 'Clear Current Bucket',
       click: () => {
-        clearAll()
+        clearAll(getCurrentBucketId())
         onHistoryChanged()
       }
     },

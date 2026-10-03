@@ -175,3 +175,163 @@ footer {
   color: var(--fg-dim);
   font-size: 11px;
 }
+
+.bucket-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 0 4px;
+  color: var(--fg-dim);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bucket-name {
+  padding: 2px 10px;
+  border-radius: 10px;
+  background: var(--bg-alt);
+  color: var(--accent);
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--fg-dim);
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.tab.active {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
+
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.buckets-panel {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.4fr);
+  gap: 16px;
+  min-height: 0;
+}
+
+.buckets-panel h2 {
+  font-size: 13px;
+  margin: 0 0 8px;
+  color: var(--fg-dim);
+  font-weight: 500;
+}
+
+.buckets-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.bucket-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.bucket-row.selected {
+  background: var(--bg-alt);
+}
+
+.bucket-select {
+  flex: 1;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 0;
+}
+
+.badge-current {
+  margin-left: 6px;
+  font-size: 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.bucket-actions button,
+.item-delete,
+.bucket-create button {
+  background: transparent;
+  border: none;
+  color: var(--fg-dim);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.bucket-actions button:hover,
+.item-delete:hover,
+.bucket-create button:hover {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bucket-actions button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.bucket-rename,
+.bucket-create input,
+.item-text {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg);
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 13px;
+  width: 100%;
+  resize: vertical;
+}
+
+.bucket-create {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.item-row {
+  display: flex;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.item-row .item-text {
+  flex: 1;
+}
+
+.item-row .item-delete {
+  margin-top: 4px;
+}
