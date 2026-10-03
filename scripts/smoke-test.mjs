@@ -155,6 +155,9 @@ async function main() {
     const okUpdate = await page.evaluate(() => window.api.settings.update({ bucketNextHotkey: 'CommandOrControl+Alt+Right' }))
     assert(Object.keys(okUpdate.shortcutErrors).length === 0, 'a valid bucket shortcut is accepted')
 
+    const historyBytes = await page.evaluate(() => window.api.history.getSize())
+    assert(historyBytes > 0, `history file size is reported for the settings tab (${historyBytes} bytes)`)
+
     const settings = await page.evaluate(() => window.api.settings.get())
     assert(settings.maxHistorySize === 99, `default maxHistorySize is 99 (got ${settings.maxHistorySize})`)
 

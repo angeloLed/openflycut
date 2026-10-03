@@ -5,6 +5,7 @@ export const IPC = {
   HistoryDeleteItem: 'history:deleteItem',
   HistoryClearAll: 'history:clearAll',
   HistoryUpdateItemText: 'history:updateItemText',
+  HistoryGetSize: 'history:getSize',
   HistoryChanged: 'history:changed',
   PopupHide: 'popup:hide',
   PopupConfirmHoldSelection: 'popup:confirmHoldSelection',

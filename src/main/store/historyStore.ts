@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import { randomUUID } from 'node:crypto'
-import { copyFileSync, existsSync, readFileSync, renameSync, writeFileSync, promises as fsp } from 'node:fs'
+import { copyFileSync, existsSync, readFileSync, renameSync, statSync, writeFileSync, promises as fsp } from 'node:fs'
 import { join } from 'node:path'
 import {
   Bucket,
@@ -163,6 +163,12 @@ export function getBuckets(): Bucket[] {
 
 export function getCurrentBucketId(): string {
   return ensureLoaded().currentBucketId
+}
+
+/** Size of the history file on disk, in bytes (0 if it hasn't been written yet). */
+export function getStorageBytes(): number {
+  ensureLoaded()
+  return existsSync(filePath) ? statSync(filePath).size : 0
 }
 
 export function getView(): PopupView {

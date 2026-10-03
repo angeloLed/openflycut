@@ -37,6 +37,7 @@ export function registerIpcHandlers(): void {
     historyStore.removeItem(bucketId, id)
   )
   ipcMain.handle(IPC.HistoryClearAll, (_event, bucketId: string) => historyStore.clearAll(bucketId))
+  ipcMain.handle(IPC.HistoryGetSize, () => historyStore.getStorageBytes())
   ipcMain.handle(IPC.HistoryUpdateItemText, (_event, bucketId: string, id: string, text: string) => {
     const result = historyStore.updateItemText(bucketId, id, text)
     notifyPopupChanged()

@@ -6,6 +6,12 @@ import HotkeyRecorder from './HotkeyRecorder'
 import ToggleRow from './ToggleRow'
 import BucketsPanel from './BucketsPanel'
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+}
+
 type Tab = 'general' | 'buckets'
 type ShortcutErrors = Partial<Record<'hotkey' | 'bucketPrevHotkey' | 'bucketNextHotkey', string>>
 
@@ -14,11 +20,13 @@ export default function SettingsApp() {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS)
   const [shortcutErrors, setShortcutErrors] = useState<ShortcutErrors>({})
   const [version, setVersion] = useState('')
+  const [historyBytes, setHistoryBytes] = useState<number | null>(null)
   const [isLinux, setIsLinux] = useState(false)
   const [isWindows, setIsWindows] = useState(false)
 
   useEffect(() => {
     window.api.settings.get().then(setSettings)
+    window.api.history.getSize().then(setHistoryBytes)
     window.api.app.getVersion().then(setVersion)
     window.api.app.getPlatform().then((platform) => {
       setIsLinux(platform === 'linux')
@@ -30,6 +38,7 @@ export default function SettingsApp() {
     const result = await window.api.settings.update(patch)
     setSettings(result.settings)
     setShortcutErrors(result.shortcutErrors)
+    window.api.history.getSize().then(setHistoryBytes)
   }
 
   return (
@@ -92,6 +101,10 @@ export default function SettingsApp() {
             disabled={!isWindows}
             onChange={(autoPasteOnSelect) => update({ autoPasteOnSelect })}
           />
+          <p className="storage-info">
+            History database (history.json):{' '}
+            <strong>{historyBytes === null ? '…' : formatBytes(historyBytes)}</strong>
+          </p>
           <footer>OpenFlyCut {version}</footer>
         </div>
       )}
